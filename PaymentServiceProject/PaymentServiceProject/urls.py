@@ -1,4 +1,4 @@
-"""project URL Configuration
+"""PaymentServiceProject URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.0/topics/http/urls/
@@ -15,16 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path, re_path
-from testapp.views import WalletAPIview, WalletsOfCurUser
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/v1/wallet-auth/", include("rest_framework.urls")),
-    path("api/v1/wallets", WalletAPIview.as_view()),
-    path("api/v1/auth/", include("djoser.urls")),
-    re_path(r"^auth/", include("djoser.urls.authtoken")),
     path(
-        "api/v1/wallets/<str:name>/",
-        WalletsOfCurUser.as_view({"get": "retrieve"}),
-    ),
+        "api/v1/wallet-auth/", include("rest_framework.urls")
+    ),  # login, logout
+    path("api/v1/auth/", include("djoser.urls")),  # regastration
+    re_path(r"^auth/", include("djoser.urls.authtoken")),
+    path("api/v1/wallets/", include("PaymentApp.Wallets.urls")),
+    path("api/v1/transactions/", include("PaymentApp.Transactions.urls")),
 ]

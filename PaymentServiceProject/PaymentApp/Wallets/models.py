@@ -1,0 +1,31 @@
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
+from django.utils.crypto import get_random_string
+
+
+def generate_name():
+    return get_random_string(length=8)
+
+
+class Wallet(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=8, unique=True, default=generate_name)
+    TYPES = (("Visa", "Visa"), ("Mastercard", "Mastercard"))
+    CURRENCY = (("USD", "USD"), ("EUR", "EUR"), ("RUB", "RUB"))
+    type = models.CharField(max_length=10, choices=TYPES)
+    currency = models.CharField(max_length=3, choices=CURRENCY)
+    balance = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        default=0.00,
+        validators=[MinValueValidator(0)],
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
+    created_on = models.DateTimeField(auto_now_add=True)
+    modified_on = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
