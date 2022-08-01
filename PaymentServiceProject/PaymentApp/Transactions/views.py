@@ -131,5 +131,6 @@ class TransactionWalletAPIView(viewsets.ModelViewSet):
 
     def get_queryset(self, **kwargs):
         return Transaction.objects.filter(
-            Q(sender=self.kwargs["sender"]) | Q(receiver=self.kwargs["sender"])
+            Q(sender=self.kwargs["wallet_name"])
+            | Q(receiver=self.kwargs["wallet_name"])
         )
