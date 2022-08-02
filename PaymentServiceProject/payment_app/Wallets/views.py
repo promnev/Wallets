@@ -13,19 +13,22 @@ class WalletAPIView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         wallet_data = request.data
-        if 0 <= Wallet.objects.filter(user=self.request.user).count() < 5:
-            bonus = {"USD": 3.00, "EUR": 3.00, "RUB": 100.00}
-            new_wallet = Wallet.objects.create(
-                type=wallet_data["type"],
-                currency=wallet_data["currency"],
-                balance=bonus[f"{wallet_data['currency']}"],
-                user=self.request.user,
-            )
-            new_wallet.save()
+        if Wallet.objects.filter(user=self.request.user).count() < 5:
+            try:
+                bonus = {"USD": 3.00, "EUR": 3.00, "RUB": 100.00}
+                new_wallet = Wallet.objects.create(
+                    type=wallet_data["type"],
+                    currency=wallet_data["currency"],
+                    balance=bonus[f"{wallet_data['currency']}"],
+                    user=self.request.user,
+                )
+                new_wallet.save()
+            except KeyError:
+                return Response("Please insert correct type and currency")
             serializer = WalletSerializer(new_wallet)
             return Response(serializer.data)
         else:
-            return Response("u can't have more than 5 wallets, bro")
+            return Response("You can't have more than 5 wallets")
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

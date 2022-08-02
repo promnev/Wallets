@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
-from PaymentApp.Transactions.models import Transaction
-from PaymentApp.Wallets.models import Wallet
+from payment_app.Transactions.models import Transaction
+from payment_app.Wallets.models import Wallet
 from rest_framework import status
 from rest_framework.test import APITestCase
 

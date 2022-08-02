@@ -23,6 +23,6 @@ urlpatterns = [
     ),  # login, logout
     path("api/v1/auth/", include("djoser.urls")),  # regastration
     re_path(r"^auth/", include("djoser.urls.authtoken")),
-    path("api/v1/wallets/", include("PaymentApp.Wallets.urls")),
-    path("api/v1/transactions/", include("PaymentApp.Transactions.urls")),
+    path("api/v1/wallets/", include("payment_app.Wallets.urls")),
+    path("api/v1/transactions/", include("payment_app.Transactions.urls")),
 ]

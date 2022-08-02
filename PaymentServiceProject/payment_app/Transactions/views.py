@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -21,32 +22,42 @@ class TransactionAPIView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         transaction_data = request.data
-        trans_amount = float(transaction_data["transfer_amount"])
-        sender_balance = float(
-            getattr(
-                Wallet.objects.get(name=transaction_data["sender"]), "balance"
+        try:
+            trans_amount = float(transaction_data["transfer_amount"])
+        except ValueError:
+            return Response(
+                "Please insert only numbers in transfer amount field"
             )
-        )
-        receiver_balance = float(
-            getattr(
+        try:
+            sender_balance = float(
+                getattr(
+                    Wallet.objects.get(name=transaction_data["sender"]),
+                    "balance",
+                )
+            )
+            receiver_balance = float(
+                getattr(
+                    Wallet.objects.get(name=transaction_data["receiver"]),
+                    "balance",
+                )
+            )
+            sender_currency = getattr(
+                Wallet.objects.get(name=transaction_data["sender"]), "currency"
+            )
+            receiver_currency = getattr(
                 Wallet.objects.get(name=transaction_data["receiver"]),
-                "balance",
+                "currency",
             )
-        )
-        sender_currency = getattr(
-            Wallet.objects.get(name=transaction_data["sender"]), "currency"
-        )
-        receiver_currency = getattr(
-            Wallet.objects.get(name=transaction_data["receiver"]), "currency"
-        )
-        commission_amount = trans_amount / 10
-        total_amount = trans_amount
-        sender_user = getattr(
-            Wallet.objects.get(name=transaction_data["sender"]), "user"
-        )
-        receiver_user = getattr(
-            Wallet.objects.get(name=transaction_data["receiver"]), "user"
-        )
+            commission_amount = trans_amount / 10
+            total_amount = trans_amount
+            sender_user = getattr(
+                Wallet.objects.get(name=transaction_data["sender"]), "user"
+            )
+            receiver_user = getattr(
+                Wallet.objects.get(name=transaction_data["receiver"]), "user"
+            )
+        except Wallet.DoesNotExist:
+            return Response("Please insert correct wallets names")
 
         if not sender_user == receiver_user:
             total_amount += commission_amount
@@ -54,38 +65,38 @@ class TransactionAPIView(viewsets.ModelViewSet):
         if sender_user == self.request.user:
             if sender_currency == receiver_currency:
                 if sender_balance >= total_amount:
-                    # try:
-
-                    obj_sender = Wallet.objects.get(
-                        name=transaction_data["sender"]
-                    )
-                    obj_sender.balance = sender_balance - total_amount
-                    obj_sender.save()
-
-                    obj_receiver = Wallet.objects.get(
-                        name=transaction_data["receiver"]
-                    )
-                    obj_receiver.balance = receiver_balance + trans_amount
-                    obj_receiver.save()
-
-                    new_transaction = Transaction.objects.create(
-                        sender=Wallet.objects.get(
+                    try:
+                        obj_sender = Wallet.objects.get(
                             name=transaction_data["sender"]
-                        ),
-                        receiver=Wallet.objects.get(
-                            name=transaction_data["receiver"]
-                        ),
-                        transfer_amount=transaction_data["transfer_amount"],
-                        commission=(total_amount - trans_amount),
-                        status="PAID",
-                    )
-                    new_transaction.save()
-                    serializer = TransactionSerializer(new_transaction)
+                        )
+                        obj_sender.balance = sender_balance - total_amount
+                        obj_sender.save()
 
-                    # except:
-                    #     return Response('transaction failed')
-                    #
-                    # else:
+                        obj_receiver = Wallet.objects.get(
+                            name=transaction_data["receiver"]
+                        )
+                        obj_receiver.balance = receiver_balance + trans_amount
+                        obj_receiver.save()
+
+                        new_transaction = Transaction.objects.create(
+                            sender=Wallet.objects.get(
+                                name=transaction_data["sender"]
+                            ),
+                            receiver=Wallet.objects.get(
+                                name=transaction_data["receiver"]
+                            ),
+                            transfer_amount=transaction_data[
+                                "transfer_amount"
+                            ],
+                            commission=(total_amount - trans_amount),
+                            status="PAID",
+                        )
+                        new_transaction.save()
+
+                    except ValueError:
+                        return Response("transaction failed")
+
+                    serializer = TransactionSerializer(new_transaction)
                     return Response(serializer.data)
 
                 else:

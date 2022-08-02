@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "PaymentApp.apps.TestappConfig",
+    "payment_app.apps.TestappConfig",
     "rest_framework",
     "rest_framework.authtoken",
     "djoser",
@@ -144,4 +144,5 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "EXCEPTION_HANDLER": "payment_app.utils.custom_exception_handler",
 }

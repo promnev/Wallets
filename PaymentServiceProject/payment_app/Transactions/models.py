@@ -24,13 +24,13 @@ class Transaction(models.Model):
         Wallet,
         to_field="name",
         related_name="sender",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
     )
     receiver = models.ForeignKey(
         Wallet,
         to_field="name",
         related_name="receiver",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
     )
     # sender = models.CharField(max_length=20000)
     # receiver = models.CharField(max_length=200000)
