@@ -1,6 +1,8 @@
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
+from .logic.checkers import user_wallets_count_checker
+from .logic.wallet_creating import wallet_creator
 from .models import Wallet
 from .serializers import WalletSerializer
 
@@ -13,22 +15,18 @@ class WalletAPIView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         wallet_data = request.data
-        if Wallet.objects.filter(user=self.request.user).count() < 5:
-            try:
-                bonus = {"USD": 3.00, "EUR": 3.00, "RUB": 100.00}
-                new_wallet = Wallet.objects.create(
-                    type=wallet_data["type"],
-                    currency=wallet_data["currency"],
-                    balance=bonus[f"{wallet_data['currency']}"],
-                    user=self.request.user,
-                )
-                new_wallet.save()
-            except KeyError:
-                return Response("Please insert correct type and currency")
-            serializer = WalletSerializer(new_wallet)
-            return Response(serializer.data)
-        else:
+        request_user = self.request.user
+
+        if not user_wallets_count_checker(request_user):
             return Response("You can't have more than 5 wallets")
+
+        new_wallet = wallet_creator(wallet_data, request_user)
+
+        if not new_wallet:
+            return Response("Please insert correct type and currency")
+
+        serializer = WalletSerializer(new_wallet)
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

@@ -28,6 +28,7 @@ pip-delete-this-directory.txt
 
 # Pycharm PaymentServiceProject files
 .idea/
+.env
 
 # PyTest cache
 .pytest_cache/

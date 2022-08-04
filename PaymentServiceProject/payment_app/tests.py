@@ -19,21 +19,23 @@ class AppTests(APITestCase):
         )
 
     def test_login(self):
-        data1 = {"username": "loslos", "password": "pospospos"}
-        test_user = User.objects.create_user("loslos", password="pospospos")
+        data1 = {"username": "loslos321", "password": "pospospos123"}
+        test_user = User.objects.create_user(
+            "loslos321", password="pospospos123"
+        )
         test_user.save()
-        response = self.client.post("/auth/token/login/", data1, format="json")
+        response = self.client.post("auth/token/login/", data1, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_logout(self):
         data1 = {"username": "loslos", "password": "pospospos"}
         test_user = User.objects.create_user("loslos", password="pospospos")
         test_user.save()
-        response = self.client.post("/auth/token/login/", data1, format="json")
+        response = self.client.post("auth/token/login/", data1, format="json")
         token_from_response = response.data["auth_token"]
         token = "Token " + str(token_from_response)
         response = self.client.post(
-            "/auth/token/logout/", HTTP_AUTHORIZATION=token, format="json"
+            "auth/token/logout/", HTTP_AUTHORIZATION=token, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 

@@ -1,9 +1,12 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.response import Response
 
 from ..Wallets.models import Wallet
+from .logic.checkers import (commission_checker, trans_amount_validator,
+                             trans_wallets_checker)
+from .logic.transaction_creating import (failed_transaction_creator,
+                                         transaction_creator)
 from .models import Transaction
 from .serializers import TransactionSerializer
 
@@ -22,117 +25,52 @@ class TransactionAPIView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         transaction_data = request.data
-        try:
-            trans_amount = float(transaction_data["transfer_amount"])
-        except ValueError:
+
+        trans_amount = trans_amount_validator(transaction_data)
+        if not trans_amount:
             return Response(
-                "Please insert only numbers in transfer amount field"
+                "Please insert only numbers in transaction amount field"
             )
-        try:
-            sender_balance = float(
-                getattr(
-                    Wallet.objects.get(name=transaction_data["sender"]),
-                    "balance",
-                )
-            )
-            receiver_balance = float(
-                getattr(
-                    Wallet.objects.get(name=transaction_data["receiver"]),
-                    "balance",
-                )
-            )
-            sender_currency = getattr(
-                Wallet.objects.get(name=transaction_data["sender"]), "currency"
-            )
-            receiver_currency = getattr(
-                Wallet.objects.get(name=transaction_data["receiver"]),
-                "currency",
-            )
-            commission_amount = trans_amount / 10
-            total_amount = trans_amount
-            sender_user = getattr(
-                Wallet.objects.get(name=transaction_data["sender"]), "user"
-            )
-            receiver_user = getattr(
-                Wallet.objects.get(name=transaction_data["receiver"]), "user"
-            )
-        except Wallet.DoesNotExist:
-            return Response("Please insert correct wallets names")
+        if trans_amount == "negative amount":
+            return Response("You cannot send a negative amount")
 
-        if not sender_user == receiver_user:
-            total_amount += commission_amount
+        wallets_data = trans_wallets_checker(transaction_data)
+        if not wallets_data:
+            return Response("Please insert correct wallet names")
 
-        if sender_user == self.request.user:
-            if sender_currency == receiver_currency:
-                if sender_balance >= total_amount:
-                    try:
-                        obj_sender = Wallet.objects.get(
-                            name=transaction_data["sender"]
-                        )
-                        obj_sender.balance = sender_balance - total_amount
-                        obj_sender.save()
-
-                        obj_receiver = Wallet.objects.get(
-                            name=transaction_data["receiver"]
-                        )
-                        obj_receiver.balance = receiver_balance + trans_amount
-                        obj_receiver.save()
-
-                        new_transaction = Transaction.objects.create(
-                            sender=Wallet.objects.get(
-                                name=transaction_data["sender"]
-                            ),
-                            receiver=Wallet.objects.get(
-                                name=transaction_data["receiver"]
-                            ),
-                            transfer_amount=transaction_data[
-                                "transfer_amount"
-                            ],
-                            commission=(total_amount - trans_amount),
-                            status="PAID",
-                        )
-                        new_transaction.save()
-
-                    except ValueError:
-                        return Response("transaction failed")
-
-                    serializer = TransactionSerializer(new_transaction)
-                    return Response(serializer.data)
-
-                else:
-                    new_transaction = Transaction.objects.create(
-                        sender=Wallet.objects.get(
-                            name=transaction_data["sender"]
-                        ),
-                        receiver=Wallet.objects.get(
-                            name=transaction_data["receiver"]
-                        ),
-                        transfer_amount=transaction_data["transfer_amount"],
-                        commission=(total_amount - trans_amount),
-                        status="FAILED",
-                    )
-                    new_transaction.save()
-                    return Response(
-                        "You haven't enough money for this transaction"
-                    )
-            else:
-                new_transaction = Transaction.objects.create(
-                    sender=Wallet.objects.get(name=transaction_data["sender"]),
-                    receiver=Wallet.objects.get(
-                        name=transaction_data["receiver"]
-                    ),
-                    transfer_amount=transaction_data["transfer_amount"],
-                    commission=(total_amount - trans_amount),
-                    status="FAILED",
-                )
-                new_transaction.save()
-                return Response(
-                    "You can't send money to a wallet with a different currency"
-                )
-        else:
+        if wallets_data["sender_user"] != self.request.user:
             return Response(
                 "Wallet access is not allowed. Check if you typed your wallet name correctly."
             )
+
+        if (
+            wallets_data["sender_currency"]
+            != wallets_data["receiver_currency"]
+        ):
+            return Response(
+                "You can't send money to a wallet with a different currency"
+            )
+
+        total_amount = commission_checker(trans_amount, wallets_data)
+
+        if wallets_data["sender_balance"] < total_amount:
+            failed_transaction_creator(
+                transaction_data, total_amount, trans_amount
+            )
+            return Response("You haven't enough money for this transaction")
+
+        new_transaction = transaction_creator(
+            transaction_data, wallets_data, total_amount, trans_amount
+        )
+
+        if not new_transaction:
+            failed_transaction_creator(
+                transaction_data, total_amount, trans_amount
+            )
+            return Response("Transaction failed")
+
+        serializer = TransactionSerializer(new_transaction)
+        return Response(serializer.data)
 
     lookup_field = "id"
 

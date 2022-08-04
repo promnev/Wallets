@@ -21,7 +21,7 @@ urlpatterns = [
     path(
         "api/v1/wallet-auth/", include("rest_framework.urls")
     ),  # login, logout
-    path("api/v1/auth/", include("djoser.urls")),  # regastration
+    path("api/v1/registration/", include("djoser.urls")),  # regastration
     re_path(r"^auth/", include("djoser.urls.authtoken")),
     path("api/v1/wallets/", include("payment_app.Wallets.urls")),
     path("api/v1/transactions/", include("payment_app.Transactions.urls")),
