@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from ..Wallets.models import Wallet
-from .models import Transaction
+from ..Wallets.wallet_models import Wallet
+from .transaction_models import Transaction
 
 
 class TransactionSerializer(serializers.ModelSerializer):

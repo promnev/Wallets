@@ -2,19 +2,23 @@ from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from ..Wallets.models import Wallet
-from .logic.checkers import (commission_checker, trans_amount_validator,
-                             trans_wallets_checker)
+from ..Wallets.wallet_models import Wallet
+from .logic.transaction_checkers import (commission_checker,
+                                         trans_amount_validator,
+                                         trans_wallets_checker)
 from .logic.transaction_creating import (failed_transaction_creator,
                                          transaction_creator)
-from .models import Transaction
-from .serializers import TransactionSerializer
+from .transaction_models import Transaction
+from .transaction_serializers import TransactionSerializer
 
 
 class TransactionAPIView(viewsets.ModelViewSet):
+    """This is the transaction view"""
+
     serializer_class = TransactionSerializer
 
     def get_queryset(self):
+        """Takes in get-request, returns all transaction where current logged-in user is the sender or receiver"""
         qs_wallets_of_cur_user = Wallet.objects.filter(
             user=self.request.user
         ).values_list("name", flat=True)
@@ -24,9 +28,17 @@ class TransactionAPIView(viewsets.ModelViewSet):
         )
 
     def create(self, request, *args, **kwargs):
+        """Takes in post-request, checks it, creates new transaction and returns its data if all right
+        or returns explanation"""
         transaction_data = request.data
 
         trans_amount = trans_amount_validator(transaction_data)
+        if trans_amount == "typeerror":
+            return Response("Please insert transaction amount")
+
+        if trans_amount == "zero":
+            return Response("Please insert positive transaction amount")
+
         if not trans_amount:
             return Response(
                 "Please insert only numbers in transaction amount field"
@@ -35,8 +47,15 @@ class TransactionAPIView(viewsets.ModelViewSet):
             return Response("You cannot send a negative amount")
 
         wallets_data = trans_wallets_checker(transaction_data)
+
+        if wallets_data == "sender incorrect":
+            return Response("Please insert correct sender wallet name")
+
+        if wallets_data == "receiver incorrect":
+            return Response("Please insert correct receiver wallet name")
+
         if not wallets_data:
-            return Response("Please insert correct wallet names")
+            return Response("Something go wrong")
 
         if wallets_data["sender_user"] != self.request.user:
             return Response(
@@ -76,6 +95,8 @@ class TransactionAPIView(viewsets.ModelViewSet):
 
 
 class TransactionWalletAPIView(viewsets.ModelViewSet):
+    """Takes in get-request, returns all transaction where definite wallet is the sender or receiver"""
+
     serializer_class = TransactionSerializer
 
     def get_queryset(self, **kwargs):

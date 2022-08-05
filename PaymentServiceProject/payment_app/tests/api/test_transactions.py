@@ -1,6 +1,6 @@
 import pytest
-from payment_app.Transactions.models import Transaction
-from payment_app.Wallets.models import Wallet
+from payment_app.Transactions.transaction_models import Transaction
+from payment_app.Wallets.wallet_models import Wallet
 from rest_framework.test import APIClient
 
 client = APIClient()
@@ -8,25 +8,26 @@ client = APIClient()
 
 @pytest.mark.django_db
 def test_transaction_create():
+    """Transaction create test"""
     payload = {
         "username": "harrypotter1988",
         "password": "hogwarts2000",
     }
     client.post("/api/v1/registration/users/", payload)
-    response = client.post("/auth/token/login/", payload)
+    response = client.post("/api/v1/auth/token/login/", payload)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Visa", "currency": "USD"}
     client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
     receiver_wallet_name = Wallet.objects.first().name
-    client.post("/auth/token/logout/", HTTP_AUTHORIZATION=token)
+    client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
 
     payload2 = {
         "username": "germionagranger1990",
         "password": "fsdf32424sfsf",
     }
     client.post("/api/v1/registration/users/", payload2)
-    response = client.post("/auth/token/login/", payload2)
+    response = client.post("/api/v1/auth/token/login/", payload2)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Mastercard", "currency": "USD"}
@@ -49,25 +50,26 @@ def test_transaction_create():
 
 @pytest.mark.django_db
 def test_get_all_transactions_for_current_user():
+    """Get all transactions for current logged-in user test"""
     payload = {
         "username": "harrypotter1988",
         "password": "hogwarts2000",
     }
     client.post("/api/v1/registration/users/", payload)
-    response = client.post("/auth/token/login/", payload)
+    response = client.post("/api/v1/auth/token/login/", payload)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Visa", "currency": "USD"}
     client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
     receiver_wallet_name = Wallet.objects.first().name
-    client.post("/auth/token/logout/", HTTP_AUTHORIZATION=token)
+    client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
 
     payload2 = {
         "username": "germionagranger1990",
         "password": "fsdf32424sfsf",
     }
     client.post("/api/v1/registration/users/", payload2)
-    response = client.post("/auth/token/login/", payload2)
+    response = client.post("/api/v1/auth/token/login/", payload2)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Mastercard", "currency": "USD"}
@@ -95,25 +97,26 @@ def test_get_all_transactions_for_current_user():
 
 @pytest.mark.django_db
 def test_get_transaction_by_id():
+    """Get all transactions for current logged-in user by transaction id test"""
     payload = {
         "username": "harrypotter1988",
         "password": "hogwarts2000",
     }
     client.post("/api/v1/registration/users/", payload)
-    response = client.post("/auth/token/login/", payload)
+    response = client.post("/api/v1/auth/token/login/", payload)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Visa", "currency": "USD"}
     client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
     receiver_wallet_name = Wallet.objects.first().name
-    client.post("/auth/token/logout/", HTTP_AUTHORIZATION=token)
+    client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
 
     payload2 = {
         "username": "germionagranger1990",
         "password": "fsdf32424sfsf",
     }
     client.post("/api/v1/registration/users/", payload2)
-    response = client.post("/auth/token/login/", payload2)
+    response = client.post("/api/v1/auth/token/login/", payload2)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Mastercard", "currency": "USD"}
@@ -139,32 +142,33 @@ def test_get_transaction_by_id():
 
 @pytest.mark.django_db
 def test_get_all_transactions_by_wallet_name_where_it_is_sender_or_receiver():
+    """Get all transactions for current logged-in user where he is sender or receiver test"""
     payload = {
         "username": "harrypotter1988",
         "password": "hogwarts2000",
     }
     client.post("/api/v1/registration/users/", payload)
-    response = client.post("/auth/token/login/", payload)
+    response = client.post("/api/v1/auth/token/login/", payload)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Visa", "currency": "USD"}
     client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
     receiver_wallet_name = Wallet.objects.first().name
-    client.post("/auth/token/logout/", HTTP_AUTHORIZATION=token)
+    client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
 
     payload3 = {
         "username": "ronwisley",
         "password": "redhairscool",
     }
     client.post("/api/v1/registration/users/", payload3)
-    response = client.post("/auth/token/login/", payload3)
+    response = client.post("/api/v1/auth/token/login/", payload3)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Visa", "currency": "USD"}
     response = client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
     third_user_wallet_id = response.data["id"]
     third_user_wallet_name = Wallet.objects.get(id=third_user_wallet_id).name
-    client.post("/auth/token/logout/", HTTP_AUTHORIZATION=token)
+    client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
 
     # create transaction from third_user to receiver, which shouldn't be returned in final responce ( transaction id = 1 )
     data2 = {
@@ -179,7 +183,7 @@ def test_get_all_transactions_by_wallet_name_where_it_is_sender_or_receiver():
         "password": "fsdf32424sfsf",
     }
     client.post("/api/v1/registration/users/", payload2)
-    response = client.post("/auth/token/login/", payload2)
+    response = client.post("/api/v1/auth/token/login/", payload2)
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Mastercard", "currency": "USD"}

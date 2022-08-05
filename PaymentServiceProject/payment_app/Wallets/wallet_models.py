@@ -4,11 +4,14 @@ from django.db import models
 from django.utils.crypto import get_random_string
 
 
-def generate_name():
+def generate_name() -> str:
+    """This is the wallet name generator"""
     return get_random_string(length=8)
 
 
 class Wallet(models.Model):
+    """This is the wallet model"""
+
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=8, unique=True, default=generate_name)
     TYPES = (("Visa", "Visa"), ("Mastercard", "Mastercard"))
@@ -27,5 +30,5 @@ class Wallet(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     modified_on = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
