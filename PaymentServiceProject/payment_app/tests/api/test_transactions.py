@@ -1,6 +1,6 @@
 import pytest
-from payment_app.Transactions.transaction_models import Transaction
-from payment_app.Wallets.wallet_models import Wallet
+from payment_app.Transactions.models import Transaction
+from payment_app.Wallets.models import Wallet
 from rest_framework.test import APIClient
 
 client = APIClient()

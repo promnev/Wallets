@@ -2,7 +2,7 @@
 
 import django.core.validators
 import django.db.models.deletion
-import payment_app.Wallets.wallet_models
+import payment_app.Wallets.models
 from django.conf import settings
 from django.db import migrations, models
 
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 (
                     "name",
                     models.CharField(
-                        default=payment_app.Wallets.wallet_models.generate_name,
+                        default=payment_app.Wallets.models.generate_name,
                         max_length=8,
                         unique=True,
                     ),

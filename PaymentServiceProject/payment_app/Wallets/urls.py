@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .wallet_views import WalletAPIView
+from .views import WalletAPIView
 
 urlpatterns = [
     path("", WalletAPIView.as_view({"get": "list", "post": "create"})),

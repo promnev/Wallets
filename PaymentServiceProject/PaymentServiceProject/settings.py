@@ -16,11 +16,18 @@ import environ
 
 env = environ.Env()
 
+
 # Build paths inside the PaymentServiceProject like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+MAX_WALLETS_PER_USER = int(env("MAX_WALLETS_PER_USER"))
+BONUS_FOR_USD = env("BONUS_FOR_USD")
+BONUS_FOR_EUR = env("BONUS_FOR_EUR")
+BONUS_FOR_RUB = env("BONUS_FOR_RUB")
+COMMISSION_VALUE = float(env("COMMISSION_VALUE"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
