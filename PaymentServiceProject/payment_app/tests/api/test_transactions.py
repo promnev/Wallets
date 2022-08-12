@@ -31,8 +31,7 @@ def test_transaction_create():
     token_from_response = response.data["auth_token"]
     token = "Token " + str(token_from_response)
     data = {"type": "Mastercard", "currency": "USD"}
-    response = client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
-    #
+    client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
     sender_wallet_name = Wallet.objects.get(type="Mastercard").name
 
     transaction_data = {
@@ -157,8 +156,8 @@ def test_get_all_transactions_by_wallet_name_where_it_is_sender_or_receiver():
     client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
 
     payload3 = {
-        "username": "ronwisley",
-        "password": "redhairscool",
+        "username": "424jlkjfs3",
+        "password": "sdf..23fsdf",
     }
     client.post("/api/v1/registration/users/", payload3)
     response = client.post("/api/v1/auth/token/login/", payload3)
@@ -166,9 +165,7 @@ def test_get_all_transactions_by_wallet_name_where_it_is_sender_or_receiver():
     token = "Token " + str(token_from_response)
     data = {"type": "Visa", "currency": "USD"}
     response = client.post("/api/v1/wallets/", data, HTTP_AUTHORIZATION=token)
-    third_user_wallet_id = response.data["id"]
-    third_user_wallet_name = Wallet.objects.get(id=third_user_wallet_id).name
-    client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
+    third_user_wallet_name = response.data["name"]
 
     # create transaction from third_user to receiver, which shouldn't be returned in final responce ( transaction id = 1 )
     data2 = {
@@ -177,6 +174,7 @@ def test_get_all_transactions_by_wallet_name_where_it_is_sender_or_receiver():
         "transfer_amount": 1,
     }
     client.post("/api/v1/transactions/", data2, HTTP_AUTHORIZATION=token)
+    client.post("/api/v1/auth/token/logout/", HTTP_AUTHORIZATION=token)
 
     payload2 = {
         "username": "germionagranger1990",
@@ -201,7 +199,10 @@ def test_get_all_transactions_by_wallet_name_where_it_is_sender_or_receiver():
     client.post(
         "/api/v1/transactions/", transaction_data, HTTP_AUTHORIZATION=token
     )
-    response = client.get("/api/v1/transactions/", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"/api/v1/transactions/wallet/{sender_wallet_name}/",
+        HTTP_AUTHORIZATION=token,
+    )
     assert response.status_code == 200
     assert (response.data[0])["sender"] == sender_wallet_name
     assert (response.data[1])["sender"] == sender_wallet_name

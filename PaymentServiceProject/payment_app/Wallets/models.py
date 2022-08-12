@@ -18,6 +18,7 @@ class Wallet(models.Model):
     CURRENCY = (("USD", "USD"), ("EUR", "EUR"), ("RUB", "RUB"))
     type = models.CharField(max_length=10, choices=TYPES)
     currency = models.CharField(max_length=3, choices=CURRENCY)
+
     balance = models.DecimalField(
         max_digits=20,
         decimal_places=2,

@@ -33,17 +33,6 @@ def test_login():
 
 
 @pytest.mark.django_db
-def test_login_fail():
-    """Login fail test"""
-    payload = {
-        "username": "notharry1988dasd",
-        "password": "hogwarts3012123w",
-    }
-    response = client.post("/api/v1/auth/token/login/", payload)
-    assert response.data == "Not found"
-
-
-@pytest.mark.django_db
 def test_logout():
     """Logout test"""
     payload = {

@@ -1,4 +1,4 @@
-.env
+
 .flake8
 .pre-commit-config
 interogate.txt
@@ -36,7 +36,6 @@ pip-delete-this-directory.txt
 
 # Pycharm PaymentServiceProject files
 .idea/
-.env
 
 # PyTest cache
 .pytest_cache/
