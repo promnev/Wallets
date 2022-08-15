@@ -3,6 +3,9 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.crypto import get_random_string
 
+TYPES = (("Visa", "Visa"), ("Mastercard", "Mastercard"))
+CURRENCIES = (("USD", "USD"), ("EUR", "EUR"), ("RUB", "RUB"))
+
 
 def generate_name() -> str:
     """This is the wallet name generator"""
@@ -14,10 +17,9 @@ class Wallet(models.Model):
 
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=8, unique=True, default=generate_name)
-    TYPES = (("Visa", "Visa"), ("Mastercard", "Mastercard"))
-    CURRENCY = (("USD", "USD"), ("EUR", "EUR"), ("RUB", "RUB"))
+
     type = models.CharField(max_length=10, choices=TYPES)
-    currency = models.CharField(max_length=3, choices=CURRENCY)
+    currency = models.CharField(max_length=3, choices=CURRENCIES)
 
     balance = models.DecimalField(
         max_digits=20,

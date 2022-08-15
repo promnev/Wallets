@@ -6,16 +6,14 @@ from PaymentServiceProject.settings import (BONUS_FOR_EUR, BONUS_FOR_RUB,
                                             BONUS_FOR_USD,
                                             MAX_WALLETS_PER_USER)
 
-from .models import Wallet
+from .models import CURRENCIES, TYPES, Wallet
 
 
 class WalletSerializer(serializers.ModelSerializer):
     """This is the wallet serializer"""
 
-    TYPES = (("Visa", "Visa"), ("Mastercard", "Mastercard"))
-    CURRENCY = (("USD", "USD"), ("EUR", "EUR"), ("RUB", "RUB"))
     type = serializers.ChoiceField(choices=TYPES)
-    currency = serializers.ChoiceField(choices=CURRENCY)
+    currency = serializers.ChoiceField(choices=CURRENCIES)
 
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 

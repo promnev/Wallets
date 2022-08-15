@@ -1,10 +1,10 @@
 from django.db import transaction
+from payment_app.Transactions.utils import (commission_checker,
+                                            failed_transaction_creator)
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 
 from ..Wallets.models import Wallet
-from .logic.functions import (commission_checker, failed_transaction_creator,
-                              get_wallet_data_from_db)
 from .models import Transaction
 
 
@@ -38,26 +38,28 @@ class TransactionSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Takes in transaction_request_data, check it, returns error or validated data"""
         request_user = self.context["request"].user
-        trans_amount = float(data["transfer_amount"])
+        trans_amount = round(float(data["transfer_amount"]), 2)
 
         if not Wallet.objects.filter(name=data["sender"]).exists():
             raise ValidationError("Please insert correct sender wallet name")
         elif not Wallet.objects.filter(name=data["receiver"]).exists():
             raise ValidationError("Please insert correct receiver wallet name")
-        wallets_data = get_wallet_data_from_db(data)
-        total_amount = commission_checker(trans_amount, wallets_data)
-        if wallets_data["sender_user"] != request_user:
+
+        obj_sender = Wallet.objects.get(name=data["sender"])
+        obj_receiver = Wallet.objects.get(name=data["receiver"])
+        total_amount = commission_checker(
+            trans_amount, obj_sender, obj_receiver
+        )
+
+        if obj_sender.user != request_user:
             raise ValidationError(
                 "Wallet access is not allowed. Check if you typed your wallet name correctly."
             )
-        elif (
-            wallets_data["sender_currency"]
-            != wallets_data["receiver_currency"]
-        ):
+        elif obj_sender.currency != obj_receiver.currency:
             raise ValidationError(
                 "You can't send money to a wallet with a different currency"
             )
-        elif wallets_data["sender_balance"] < total_amount:
+        elif obj_sender.balance < total_amount:
             failed_transaction_creator(data, total_amount, trans_amount)
             raise ValidationError(
                 "You haven't enough money for this transaction"
@@ -68,21 +70,24 @@ class TransactionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Takes in validated_data, creates new transaction and returns its data"""
 
-        wallets_data = get_wallet_data_from_db(validated_data)
-        trans_amount = float(validated_data["transfer_amount"])
-        total_amount = commission_checker(trans_amount, wallets_data)
+        trans_amount = round(float(validated_data["transfer_amount"]), 2)
 
         obj_sender = Wallet.objects.get(name=validated_data["sender"])
-        obj_sender.balance = wallets_data["sender_balance"] - total_amount
+        obj_receiver = Wallet.objects.get(name=validated_data["receiver"])
+
+        total_amount = commission_checker(
+            trans_amount, obj_sender, obj_receiver
+        )
+
+        obj_sender.balance = float(obj_sender.balance) - total_amount
         obj_sender.save()
 
-        obj_receiver = Wallet.objects.get(name=validated_data["receiver"])
-        obj_receiver.balance = wallets_data["receiver_balance"] + trans_amount
+        obj_receiver.balance = float(obj_receiver.balance) + trans_amount
         obj_receiver.save()
 
         new_transaction = Transaction.objects.create(
-            sender=Wallet.objects.get(name=validated_data["sender"]),
-            receiver=Wallet.objects.get(name=validated_data["receiver"]),
+            sender=obj_sender,
+            receiver=obj_receiver,
             transfer_amount=validated_data["transfer_amount"],
             commission=(total_amount - trans_amount),
             status="PAID",
