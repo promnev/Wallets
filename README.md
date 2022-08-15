@@ -1,6 +1,6 @@
 Welcome to my Test Project! 
 
-This is the API project of a payment system in which users can register, log in, log out, create wallets of several types for several currencies and transfer monetary units between these wallets.
+This is the API project of the payment system in which users can register, log in, log out, create wallets of several types for several currencies and transfer monetary units between these wallets.
 
 REQUIRED PACKAGES
 To run the project, first install the required packages. To do this, from the
