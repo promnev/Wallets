@@ -4,13 +4,24 @@ This is the API project of the payment system in which users can register, log i
 
 REQUIRED PACKAGES
 To run the project, first install the required packages. To do this, from the
-Wallets\PaymentServiceProject directory, run the command: "pip install -r requirements.txt"
+Wallets\PaymentServiceProject directory, run the command:
+
+'''
+ pip install -r requirements.txt
+'''
 
 ENVIROMENT VARIABLES
 Environment variables are set in the project. To assign them, open a file called ".env" in the Wallets\PaymentServiceProject directory and add the values ​​for the variables to it.
 
 RUNSERVER
-Run the "python manage.py runserver" command from the Wallets\PaymentServiceProject directory to run the project on a local server.
+To run the project on a local server, from the
+Wallets\PaymentServiceProject directory run the command:
+'''
+python manage.py runserver
+'''
 
 TESTS
-To run unit tests, run the command "pytest" from the Wallets\PaymentServiceProject directory.
+To run unit tests, from the Wallets\PaymentServiceProject directory run the command: 
+'''
+pytest
+''' 

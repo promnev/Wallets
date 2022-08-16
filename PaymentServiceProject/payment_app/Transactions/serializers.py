@@ -35,20 +35,20 @@ class TransactionSerializer(serializers.ModelSerializer):
             "timestamp",
         )
 
-    def validate(self, data):
+    def validate(self, data: dict):
         """Takes in transaction_request_data, check it, returns error or validated data"""
         request_user = self.context["request"].user
         trans_amount = round(float(data["transfer_amount"]), 2)
 
         if not Wallet.objects.filter(name=data["sender"]).exists():
             raise ValidationError("Please insert correct sender wallet name")
-        elif not Wallet.objects.filter(name=data["receiver"]).exists():
+        if not Wallet.objects.filter(name=data["receiver"]).exists():
             raise ValidationError("Please insert correct receiver wallet name")
 
         obj_sender = Wallet.objects.get(name=data["sender"])
         obj_receiver = Wallet.objects.get(name=data["receiver"])
         total_amount = commission_checker(
-            trans_amount, obj_sender, obj_receiver
+            trans_amount, obj_sender.user, obj_receiver.user
         )
 
         if obj_sender.user != request_user:
@@ -60,14 +60,17 @@ class TransactionSerializer(serializers.ModelSerializer):
                 "You can't send money to a wallet with a different currency"
             )
         elif obj_sender.balance < total_amount:
-            failed_transaction_creator(data, total_amount, trans_amount)
+            commission = total_amount - trans_amount
+            failed_transaction_creator(
+                obj_sender, obj_receiver, trans_amount, commission
+            )
             raise ValidationError(
                 "You haven't enough money for this transaction"
             )
         return data
 
     @transaction.atomic
-    def create(self, validated_data):
+    def create(self, validated_data: dict):
         """Takes in validated_data, creates new transaction and returns its data"""
 
         trans_amount = round(float(validated_data["transfer_amount"]), 2)
@@ -76,7 +79,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         obj_receiver = Wallet.objects.get(name=validated_data["receiver"])
 
         total_amount = commission_checker(
-            trans_amount, obj_sender, obj_receiver
+            trans_amount, obj_sender.user, obj_receiver.user
         )
 
         obj_sender.balance = float(obj_sender.balance) - total_amount

@@ -32,7 +32,7 @@ class WalletSerializer(serializers.ModelSerializer):
 
         read_only_fields = ("name", "balance")
 
-    def validate(self, data):
+    def validate(self, data: dict):
         """Takes in request_user, checks the number of his wallets, returns whether the user can create a new wallet"""
         request_user = self.context["request"].user
         if (
@@ -45,7 +45,7 @@ class WalletSerializer(serializers.ModelSerializer):
         return data
 
     @transaction.atomic
-    def create(self, validated_data):
+    def create(self, validated_data: dict):
         """Takes in validated_data, creates new wallet and returns its data"""
         bonus = {
             "USD": BONUS_FOR_USD,
