@@ -1,3 +1,11 @@
+
+.flake8
+.pre-commit-config
+interogate.txt
+interrogate_badge.svg
+pyproject.toml
+pytest.ini
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -26,7 +34,7 @@ var/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Pycharm project files
+# Pycharm PaymentServiceProject files
 .idea/
 
 # PyTest cache
@@ -51,3 +59,4 @@ manage.py
 
 # example database
 drf_example
+/project/project/.env
